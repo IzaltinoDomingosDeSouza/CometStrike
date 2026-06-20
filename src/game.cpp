@@ -1,8 +1,5 @@
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-
-#include "sdl/application.h"
-#include "game_application.h"
+#include "atsin2d/application_layer/application.h"
+#include "atsin2d/game_application.h"
 
 struct Vec2f { float x; float y; };
 struct Transform
