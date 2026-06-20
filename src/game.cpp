@@ -20,7 +20,6 @@ struct BackgroundTag {};
 
 struct Input
 {
-	int player_index;
     bool up;
     bool down;
 };
@@ -29,7 +28,10 @@ struct Velocity
 {
     Vec2f velocity;
 };
-
+struct Player
+{
+    int index;
+};
 class CometStrike : public GameApplication
 {
 public:
@@ -51,20 +53,22 @@ public:
 		
 		
 		_player = _world.create();
+		auto player = _world.emplace<Player>(_player);
+		player.index = 0;
+
 		auto & player_transform = _world.emplace<Transform>(_player);
 		player_transform.position = {32,32};
 		player_transform.rotation = -90;
-		
+
 		auto & player_sprite = _world.emplace<Sprite>(_player);
 		player_sprite.texture = resource_manager->import_texture("assets/spaceship.png");
 		auto player_texture_info = resource_manager->get_texture_info(player_sprite.texture);
 		player_sprite.size = {static_cast<float>(player_texture_info.width), static_cast<float>(player_texture_info.height)};
-		
+
 		auto & player_input = _world.emplace<Input>(_player);
-		player_input.player_index = 0;
 		player_input.up = false;
 		player_input.down = false;
-		
+
 		auto & player_velocity = _world.emplace<Velocity>(_player);
 		player_velocity.velocity = {0.0f, 0.0f};
 	}
@@ -74,17 +78,18 @@ public:
 		{
 			const bool * key_state = SDL_GetKeyboardState(NULL);
 			
-			auto view = _world.view<Input>();
+			auto view = _world.view<Input, Player>();
 			for(auto entity : view)
 		    {
 		        auto & input = view.get<Input>(entity);
+		        auto & player = view.get<Player>(entity);
 		        
-				if(input.player_index == 0)
+				if(player.index == 0)
 				{
 					input.up = key_state[SDL_SCANCODE_W];
 					input.down = key_state[SDL_SCANCODE_S];
 					
-				}else if(input.player_index == 1)
+				}else if(player.index == 1)
 				{
 					input.up = key_state[SDL_SCANCODE_UP];
 					input.down = key_state[SDL_SCANCODE_DOWN];
