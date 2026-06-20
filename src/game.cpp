@@ -141,12 +141,10 @@ public:
 			
 			float offset = transform.position.x;
 			float tile_size = sprite.size.x;
-			int screen_width = 800;
-			int screen_height = 600;
 
-            for (int x = -tile_size; x < screen_width + tile_size; x += tile_size)
+            for (int x = -tile_size; x < screen_size.x + tile_size; x += tile_size)
             {
-                for (int y = 0; y < screen_height; y += tile_size)
+                for (int y = 0; y < screen_size.y; y += tile_size)
                 {
                     _renderer->draw_texture(sprite.texture,FloatRect{x - offset, y, tile_size, tile_size});
                 }
@@ -171,6 +169,8 @@ private:
 	entt::registry _world;
 	entt::entity _background;
 	entt::entity _player;
+
+	const Vec2f screen_size{800, 600};	//TODO it need to add a api
 };
 int main()
 {
