@@ -116,6 +116,20 @@ public:
 				transform.position.y += velocity.velocity.y * delta_time;
 		    }
 		}
+		//screen bounds system
+		{
+			const float padding = 16.f;	//this make player don't touch the screen
+			auto view = _world.view<Transform, Sprite, Player>();
+			for(auto entity : view)
+			{
+				auto & transform = view.get<Transform>(entity);
+				auto & sprite = view.get<Sprite>(entity);
+
+				const float min = padding;
+				const float max = screen_size.y - padding - sprite.size.y;
+				transform.position.y = std::clamp(transform.position.y, min, max);
+			}
+		}
 		//background scrolling system
 		{
 			auto view = _world.view<Transform, BackgroundTag>();
