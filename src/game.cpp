@@ -57,7 +57,7 @@ public:
 		
 		auto & player_sprite = _world.emplace<Sprite>(_player);
 		player_sprite.texture = resource_manager->import_texture("assets/spaceship.png");
-		auto player_texture_info = resource_manager->get_texture_info(background_sprite.texture);
+		auto player_texture_info = resource_manager->get_texture_info(player_sprite.texture);
 		player_sprite.size = {static_cast<float>(player_texture_info.width), static_cast<float>(player_texture_info.height)};
 		
 		auto & player_input = _world.emplace<Input>(_player);
