@@ -18,6 +18,18 @@ struct Sprite
 
 struct BackgroundTag {};
 
+struct Input
+{
+	int player_index;
+    bool up;
+    bool down;
+};
+
+struct Velocity
+{
+    Vec2f velocity;
+};
+
 class CometStrike : public GameApplication
 {
 public:
@@ -48,30 +60,70 @@ public:
 		auto player_texture_info = resource_manager->get_texture_info(background_sprite.texture);
 		player_sprite.size = {static_cast<float>(player_texture_info.width), static_cast<float>(player_texture_info.height)};
 		
+		auto & player_input = _world.emplace<Input>(_player);
+		player_input.player_index = 0;
+		player_input.up = false;
+		player_input.down = false;
+		
+		auto & player_velocity = _world.emplace<Velocity>(_player);
+		player_velocity.velocity = {0.0f, 0.0f};
 	}
 	void update(float delta_time) override
 	{
-		/*const bool * key_state = SDL_GetKeyboardState(NULL);
-		
-		if(key_state[SDL_SCANCODE_W])
+		// input system
 		{
-			transform.position.y -= speed * delta_time;
+			const bool * key_state = SDL_GetKeyboardState(NULL);
+			
+			auto view = _world.view<Input>();
+			for(auto entity : view)
+		    {
+		        auto & input = view.get<Input>(entity);
+		        
+				if(input.player_index == 0)
+				{
+					input.up = key_state[SDL_SCANCODE_W];
+					input.down = key_state[SDL_SCANCODE_S];
+					
+				}else if(input.player_index == 1)
+				{
+					input.up = key_state[SDL_SCANCODE_UP];
+					input.down = key_state[SDL_SCANCODE_DOWN];
+				}
+			}
 		}
-		if(key_state[SDL_SCANCODE_S])
+		//movement system
 		{
-			transform.position.y += speed * delta_time;
-		}*/
-		auto view = _world.view<Transform, BackgroundTag>();
-		for (auto entity : view)
-        {
-            auto &transform = view.get<Transform>(entity);
+			auto view = _world.view<Transform, Velocity, Input>();
+			for(auto entity : view)
+		    {
+				auto & transform = view.get<Transform>(entity);
+				auto & velocity = view.get<Velocity>(entity);
+				auto & input = view.get<Input>(entity);
 
-            transform.position.x += 100.f * delta_time;
+				const float speed = 100.0f;
 
-            // wrap safely
-            transform.position.x = std::fmod(transform.position.x, 256.f);
-            if (transform.position.x < 0)
-                transform.position.x += 256.f;
+				velocity.velocity.y = 0.0f;
+
+				if(input.up)   velocity.velocity.y -= speed;
+				if(input.down) velocity.velocity.y += speed;
+				
+				transform.position.x += velocity.velocity.x * delta_time;
+				transform.position.y += velocity.velocity.y * delta_time;
+		    }
+		}
+		//background scrolling system
+		{
+			auto view = _world.view<Transform, BackgroundTag>();
+			for(auto entity : view)
+		    {
+		        auto & transform = view.get<Transform>(entity);
+
+		        transform.position.x += 100.f * delta_time;
+
+		        // wrap safely
+		        transform.position.x = std::fmod(transform.position.x, 256.f);
+		        if(transform.position.x < 0) transform.position.x += 256.f;
+		    }
         }
 	}
 	void render() override
