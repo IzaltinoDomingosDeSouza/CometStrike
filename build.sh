@@ -7,7 +7,9 @@ SOURCES="src/game.cpp \
          src/atsin2d/application_layer/application_renderer.cpp \
          src/atsin2d/application_layer/application_resource_manager.cpp"
 
-g++ -std=c++23 $SOURCES -lSDL3 -lSDL3_image -o bin/game_app
+ENTT_INCLUDE="-Ithirdparty/entt/src"
+
+g++ -std=c++23 $ENTT_INCLUDE $SOURCES -lSDL3 -lSDL3_image -o bin/game_app
 
 if [ $? -eq 0 ]; then
     echo "Compilation successful! Running $OUTPUT_EXE..."
