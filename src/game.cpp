@@ -56,14 +56,14 @@ public:
 		auto player = _world.emplace<Player>(_player);
 		player.index = 0;
 
-		auto & player_transform = _world.emplace<Transform>(_player);
-		player_transform.position = {32,32};
-		player_transform.rotation = -90;
-
 		auto & player_sprite = _world.emplace<Sprite>(_player);
 		player_sprite.texture = resource_manager->import_texture("assets/spaceship.png");
 		auto player_texture_info = resource_manager->get_texture_info(player_sprite.texture);
 		player_sprite.size = {static_cast<float>(player_texture_info.width), static_cast<float>(player_texture_info.height)};
+
+		auto & player_transform = _world.emplace<Transform>(_player);
+		player_transform.position = {16.0f, screen_size.y * 0.5f - player_sprite.size.y * 0.5f};
+		player_transform.rotation = -90;
 
 		auto & player_input = _world.emplace<Input>(_player);
 		player_input.up = false;
@@ -170,7 +170,7 @@ private:
 	entt::entity _background;
 	entt::entity _player;
 
-	const Vec2f screen_size{800, 600};	//TODO it need to add a api
+	const Vec2f screen_size{800, 600};	//TODO it need to add an api
 };
 int main()
 {
