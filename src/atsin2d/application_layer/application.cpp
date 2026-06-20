@@ -26,6 +26,8 @@ void Application::run(GameApplication * game)
 
 		game->update(delta_time);
 
+		if(game->should_quit()) _is_running = false;
+
 		_renderer->begin();
 		game->render();
 		_renderer->end();

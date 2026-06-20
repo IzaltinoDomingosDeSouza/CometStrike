@@ -94,6 +94,8 @@ public:
 					input.up = key_state[SDL_SCANCODE_UP];
 					input.down = key_state[SDL_SCANCODE_DOWN];
 				}
+				//Test only to create a way to game application quit
+				if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
 			}
 		}
 		//movement system
