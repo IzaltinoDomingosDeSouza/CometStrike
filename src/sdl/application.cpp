@@ -1,18 +1,28 @@
 #include "application.h"
 
+#include <chrono>
+#include <algorithm>
+
 void Application::run(GameApplication * game)
 {
 	init();
 	game->init(_renderer, _resource_manager);
 
+	auto last_time = std::chrono::steady_clock::now();
 	while(_is_running)
 	{
 		while(SDL_PollEvent(&_event))
 		{
 			if(_event.type == SDL_EVENT_QUIT) _is_running = false;
 		}
+		
+		auto current_time = std::chrono::steady_clock::now();
+		std::chrono::duration<float> delta_duration = current_time - last_time;
+		float delta_time = delta_duration.count();
 
-		float delta_time = 0;
+		last_time = current_time;
+
+		delta_time = std::clamp(delta_time, 0.0f, 0.1f);
 
 		game->update(delta_time);
 
