@@ -13,6 +13,7 @@ class ApplicationResourceManager : public ResourceManager
 public:
 	void init(SDL_Renderer * renderer);
     TextureHandle import_texture(std::string_view filename) override;
+    TextureInfo get_texture_info(TextureHandle handle) override;
     SDL_Texture * get_texture(TextureHandle handle);
     void shutdown();
 private:

@@ -41,6 +41,15 @@ TextureHandle ApplicationResourceManager::import_texture(std::string_view filena
 		
 	return handle;
 }
+TextureInfo ApplicationResourceManager::get_texture_info(TextureHandle handle)
+{
+    float width = 0.f;
+    float height = 0.f;
+
+    SDL_GetTextureSize(_textures[handle], &width, &height);
+
+    return TextureInfo{static_cast<int>(width), static_cast<int>(height)};
+}
 SDL_Texture * ApplicationResourceManager::get_texture(TextureHandle handle)
 {
 	//static_assert(handle > _texture_count);
