@@ -9,7 +9,7 @@ SOURCES="src/game.cpp \
 
 ENTT_INCLUDE="-Ithirdparty/entt/src"
 
-g++ -std=c++23 $ENTT_INCLUDE $SOURCES -lSDL3 -lSDL3_image -o bin/game_app
+g++ -Wall -Wextra -Werror -std=c++23 $ENTT_INCLUDE $SOURCES -lSDL3 -lSDL3_image -o bin/game_app
 
 if [ $? -eq 0 ]; then
     echo "Compilation successful! Running $OUTPUT_EXE..."

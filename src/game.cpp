@@ -68,7 +68,7 @@ public:
 		
 		
 		_player = _world.create();
-		auto player = _world.emplace<Player>(_player);
+		auto & player = _world.emplace<Player>(_player);
 		player.index = 0;
 
 		auto & player_sprite = _world.emplace<Sprite>(_player);
@@ -189,7 +189,7 @@ public:
             {
                 for (int y = 0; y < screen_size.y; y += tile_size)
                 {
-                    _renderer->draw_texture(sprite.texture,FloatRect{x - offset, y, tile_size, tile_size});
+                    _renderer->draw_texture(sprite.texture,FloatRect{x - offset, static_cast<float>(y), tile_size, tile_size});
                 }
             }
 		}
