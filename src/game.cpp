@@ -53,23 +53,34 @@ struct Lifetime
 void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Transform transform, Velocity velocity)
 {
 	auto projectile = world.create();
-	
+
 	auto & sprite = world.emplace<Sprite>(projectile);
 	sprite.texture = texture;
 	auto texture_info = resource_manager->get_texture_info(sprite.texture);
 	sprite.size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
-	
+
 	//center
 	transform.position.x -= sprite.size.x * 0.5;
 	transform.position.y -= sprite.size.y * 0.5;
-
 	world.emplace<Transform>(projectile, transform);
+
 	world.emplace<Velocity>(projectile, velocity);
 
 	auto & lifetime = world.emplace<Lifetime>(projectile);
 	lifetime.time_remaining = 6.f;
 }
+void create_comet(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Transform transform, Velocity velocity)
+{
+	auto comet = world.create();
 
+	auto & sprite = world.emplace<Sprite>(comet);
+	sprite.texture = texture;
+	auto texture_info = resource_manager->get_texture_info(sprite.texture);
+	sprite.size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
+
+	world.emplace<Transform>(comet, transform);
+	world.emplace<Velocity>(comet, velocity);
+}
 class CometStrike : public GameApplication
 {
 public:
@@ -120,6 +131,9 @@ public:
 
 		//avoid memory allocation on update
 		_projectile_texture = resource_manager->import_texture("assets/projectile.png");
+		_comet_texture = resource_manager->import_texture("assets/comets/tiny1.png");
+
+		create_comet(_world, _resource_manager, _comet_texture, {{800,200},0}, {-150.f, 0.f});
 	}
 	void update(float delta_time) override
 	{
@@ -290,6 +304,7 @@ private:
 	const Vec2f screen_size{800, 600};	//TODO it need to add an api
 
 	TextureHandle _projectile_texture;
+	TextureHandle _comet_texture;
 };
 int main()
 {
