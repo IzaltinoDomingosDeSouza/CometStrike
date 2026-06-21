@@ -189,6 +189,7 @@ public:
 				auto & velocity = view.get<Velocity>(entity);
 				
 				transform.position.x += velocity.velocity.x * delta_time;
+				transform.position.y += velocity.velocity.y * delta_time;
 		    }
 		}
 		//screen bounds system
