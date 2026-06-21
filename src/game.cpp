@@ -113,7 +113,10 @@ public:
 		// input system
 		{
 			const bool * key_state = SDL_GetKeyboardState(NULL);
-			
+
+			//Test only to create a way to game application quit
+			if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
+
 			auto view = _world.view<Input, Player>();
 			for(auto entity : view)
 		    {
@@ -132,8 +135,6 @@ public:
 					input.down = key_state[SDL_SCANCODE_DOWN];
 					input.shoot = key_state[SDL_SCANCODE_RSHIFT];
 				}
-				//Test only to create a way to game application quit
-				if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
 			}
 		}
 		//player movement system
