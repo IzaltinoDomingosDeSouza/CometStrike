@@ -4,6 +4,7 @@
 #include <entt/entt.hpp>
 
 #include <random>
+#include <utility>
 
 struct Vec2f { float x; float y; };
 
@@ -56,6 +57,15 @@ struct Wave
 	float timer;
 	float spawn_rate;
 };
+
+enum class CometType : size_t
+{
+	Tiny = 0,
+	Small,
+	Med,
+	Big
+};
+constexpr size_t COMET_TYPE_COUNT = 4;
 
 //projectile factory
 void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Transform transform, Velocity velocity)
@@ -139,7 +149,10 @@ public:
 
 		//avoid memory allocation on update
 		_projectile_texture = resource_manager->import_texture("assets/projectile.png");
-		_comet_texture = resource_manager->import_texture("assets/comets/tiny1.png");
+		_comet_texture[std::to_underlying(CometType::Tiny)] = resource_manager->import_texture("assets/comets/tiny1.png");
+		_comet_texture[std::to_underlying(CometType::Small)] = resource_manager->import_texture("assets/comets/small1.png");
+		_comet_texture[std::to_underlying(CometType::Med)] = resource_manager->import_texture("assets/comets/med1.png");
+		_comet_texture[std::to_underlying(CometType::Big)] = resource_manager->import_texture("assets/comets/big1.png");
 
 		auto comet_wave = _world.create();
 		auto & wave = _world.emplace<Wave>(comet_wave);
@@ -242,11 +255,18 @@ public:
 
 				if(wave.timer <= 0.0f)
 				{
-					auto texture_info = _resource_manager->get_texture_info(_comet_texture);
-					std::uniform_real_distribution<float> distribuition(texture_info.height, screen_size.y - texture_info.height);
+					//Tiny = 50%, Small = 30%, Med = 15%, Big = 5%
+					std::vector<double> frequency = {50.0, 30.0, 15.0, 5.0};
+					std::discrete_distribution<size_t> comet_type_distribuition(frequency.begin(), frequency.end());
 
-					Vec2f comet_position = {screen_size.x + texture_info.width, distribuition(_random_engine)};
-					create_comet(_world, _resource_manager, _comet_texture, {comet_position, 0}, {-150.f, 0.f});
+					size_t comet_type = comet_type_distribuition(_random_engine);
+					auto texture = _comet_texture[comet_type];
+
+					auto texture_info = _resource_manager->get_texture_info(texture);
+					std::uniform_real_distribution<float> comet_position_distribuition(texture_info.height, screen_size.y - texture_info.height);
+
+					Vec2f comet_position = {screen_size.x + texture_info.width, comet_position_distribuition(_random_engine)};
+					create_comet(_world, _resource_manager, texture, {comet_position, 0}, {-100, 0.f});
 					wave.timer = wave.spawn_rate;
 				}
 			}
@@ -337,7 +357,7 @@ private:
 	const Vec2f screen_size{800, 600};	//TODO it need to add an api
 
 	TextureHandle _projectile_texture;
-	TextureHandle _comet_texture;
+	TextureHandle _comet_texture[COMET_TYPE_COUNT];
 };
 int main()
 {
