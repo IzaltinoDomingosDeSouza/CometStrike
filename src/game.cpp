@@ -22,6 +22,7 @@ struct Input
 {
     bool up;
     bool down;
+    bool shoot;
 };
 
 struct Velocity
@@ -32,7 +33,11 @@ struct Player
 {
     int index;
 };
-
+struct Projectile
+{
+	float cooldown_timer;
+	float fire_rate;
+};
 void create_projectile(entt::registry & world, ResourceManager * resource_manager, Transform transform, Velocity velocity)
 {
 	auto projectile = world.create();
@@ -87,9 +92,9 @@ public:
 		auto & player_velocity = _world.emplace<Velocity>(_player);
 		player_velocity.velocity = {0.0f, 0.0f};
 		
-		//TODO move to shoot system
-		Transform projectile = {.position = {player_transform.position.x + 20, player_transform.position.y + 15}, .rotation = 90};
-		create_projectile(_world, _resource_manager, projectile, {100,0});
+		auto & player_projectile = _world.emplace<Projectile>(_player);
+		player_projectile.cooldown_timer = 0;
+		player_projectile.fire_rate = 0.6f;
 	}
 	void update(float delta_time) override
 	{
@@ -107,11 +112,13 @@ public:
 				{
 					input.up = key_state[SDL_SCANCODE_W];
 					input.down = key_state[SDL_SCANCODE_S];
+					input.shoot = key_state[SDL_SCANCODE_SPACE];
 					
 				}else if(player.index == 1)
 				{
 					input.up = key_state[SDL_SCANCODE_UP];
 					input.down = key_state[SDL_SCANCODE_DOWN];
+					input.shoot = key_state[SDL_SCANCODE_RSHIFT];
 				}
 				//Test only to create a way to game application quit
 				if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
@@ -134,6 +141,29 @@ public:
 		    }
 		}
 		
+		//shoot system
+		{
+			auto view = _world.view<Input, Transform, Projectile>();
+			for(auto entity : view)
+			{
+				auto & transform = view.get<Transform>(entity);
+				auto & input = view.get<Input>(entity);
+				auto & projectile = view.get<Projectile>(entity);
+
+				projectile.cooldown_timer -= delta_time;
+
+				if(input.shoot && projectile.cooldown_timer <= 0.0f)
+				{
+					Transform projectile_transform = {.position = {transform.position.x + 35, transform.position.y + 15}, .rotation = 90};
+
+					create_projectile(_world, _resource_manager, projectile_transform, {100,0});
+
+					input.shoot = false;
+
+					projectile.cooldown_timer = projectile.fire_rate;
+				}
+			}
+		}
 		//movement system
 		{
 			auto view = _world.view<Transform, Velocity>();
