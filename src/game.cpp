@@ -3,6 +3,8 @@
 
 #include <entt/entt.hpp>
 
+#include <random>
+
 struct Vec2f { float x; float y; };
 
 struct Transform
@@ -47,6 +49,12 @@ struct Projectile
 struct Lifetime
 {
 	float time_remaining;
+};
+
+struct Wave
+{
+	float timer;
+	float spawn_rate;
 };
 
 //projectile factory
@@ -133,7 +141,10 @@ public:
 		_projectile_texture = resource_manager->import_texture("assets/projectile.png");
 		_comet_texture = resource_manager->import_texture("assets/comets/tiny1.png");
 
-		create_comet(_world, _resource_manager, _comet_texture, {{800,200},0}, {-150.f, 0.f});
+		auto comet_wave = _world.create();
+		auto & wave = _world.emplace<Wave>(comet_wave);
+		wave.timer = 0;
+		wave.spawn_rate = 2.f;
 	}
 	void update(float delta_time) override
 	{
@@ -220,6 +231,26 @@ public:
 				}
 			}
 		}
+		//comet wave system
+		{
+			auto view = _world.view<Wave>();
+			for(auto entity : view)
+			{
+				auto & wave = view.get<Wave>(entity);
+
+				wave.timer -= delta_time;
+
+				if(wave.timer <= 0.0f)
+				{
+					auto texture_info = _resource_manager->get_texture_info(_comet_texture);
+					std::uniform_real_distribution<float> distribuition(texture_info.height, screen_size.y - texture_info.height);
+
+					Vec2f comet_position = {screen_size.x + texture_info.width, distribuition(_random_engine)};
+					create_comet(_world, _resource_manager, _comet_texture, {comet_position, 0}, {-150.f, 0.f});
+					wave.timer = wave.spawn_rate;
+				}
+			}
+		}
 		//screen bounds system
 		{
 			const float padding = 16.f;	//this make player don't touch the screen
@@ -300,6 +331,8 @@ private:
 	entt::registry _world;
 	entt::entity _background;
 	entt::entity _player;
+
+	std::mt19937 _random_engine;
 
 	const Vec2f screen_size{800, 600};	//TODO it need to add an api
 
