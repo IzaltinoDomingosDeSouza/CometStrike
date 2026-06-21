@@ -169,7 +169,18 @@ public:
 				velocity.velocity.y = movement.direction.y * movement.speed;
 		    }
 		}
-		
+		//movement system
+		{
+			auto view = _world.view<Transform, Velocity>();
+			for(auto entity : view)
+		    {
+				auto & transform = view.get<Transform>(entity);
+				auto & velocity = view.get<Velocity>(entity);
+
+				transform.position.x += velocity.velocity.x * delta_time;
+				transform.position.y += velocity.velocity.y * delta_time;
+		    }
+		}
 		//shoot system
 		{
 			auto view = _world.view<Input, Transform, Sprite, Projectile>();
@@ -194,18 +205,6 @@ public:
 					projectile.cooldown_timer = projectile.fire_rate;
 				}
 			}
-		}
-		//movement system
-		{
-			auto view = _world.view<Transform, Velocity>();
-			for(auto entity : view)
-		    {
-				auto & transform = view.get<Transform>(entity);
-				auto & velocity = view.get<Velocity>(entity);
-				
-				transform.position.x += velocity.velocity.x * delta_time;
-				transform.position.y += velocity.velocity.y * delta_time;
-		    }
 		}
 		//screen bounds system
 		{
