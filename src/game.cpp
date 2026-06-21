@@ -47,12 +47,12 @@ struct Lifetime
 };
 
 //projectile factory
-void create_projectile(entt::registry & world, ResourceManager * resource_manager, Transform transform, Velocity velocity)
+void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Transform transform, Velocity velocity)
 {
 	auto projectile = world.create();
 	
 	auto & sprite = world.emplace<Sprite>(projectile);
-	sprite.texture = resource_manager->import_texture("assets/projectile.png");
+	sprite.texture = texture;
 	auto texture_info = resource_manager->get_texture_info(sprite.texture);
 	sprite.size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
 	
@@ -107,6 +107,9 @@ public:
 		auto & player_projectile = _world.emplace<Projectile>(_player);
 		player_projectile.cooldown_timer = 0;
 		player_projectile.fire_rate = 0.6f;
+
+		//avoid memory allocation on update
+		_projectile_texture = resource_manager->import_texture("assets/projectile.png");
 	}
 	void update(float delta_time) override
 	{
@@ -169,7 +172,7 @@ public:
 				{
 					Transform projectile_transform = {.position = {transform.position.x + 35, transform.position.y + 15}, .rotation = 90};
 
-					create_projectile(_world, _resource_manager, projectile_transform, {100,0});
+					create_projectile(_world, _resource_manager, _projectile_texture, projectile_transform, {100,0});
 
 					input.shoot = false;
 
@@ -270,6 +273,8 @@ private:
 	entt::entity _player;
 
 	const Vec2f screen_size{800, 600};	//TODO it need to add an api
+
+	TextureHandle _projectile_texture;
 };
 int main()
 {
