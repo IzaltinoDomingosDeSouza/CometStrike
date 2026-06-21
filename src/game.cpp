@@ -56,6 +56,10 @@ void create_projectile(entt::registry & world, ResourceManager * resource_manage
 	auto texture_info = resource_manager->get_texture_info(sprite.texture);
 	sprite.size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
 	
+	//center
+	transform.position.x -= sprite.size.x * 0.5;
+	transform.position.y -= sprite.size.y * 0.5;
+
 	world.emplace<Transform>(projectile, transform);
 	world.emplace<Velocity>(projectile, velocity);
 
@@ -159,18 +163,20 @@ public:
 		
 		//shoot system
 		{
-			auto view = _world.view<Input, Transform, Projectile>();
+			auto view = _world.view<Input, Transform, Sprite, Projectile>();
 			for(auto entity : view)
 			{
 				auto & transform = view.get<Transform>(entity);
 				auto & input = view.get<Input>(entity);
+				auto & sprite = view.get<Sprite>(entity);
 				auto & projectile = view.get<Projectile>(entity);
 
 				projectile.cooldown_timer -= delta_time;
 
 				if(input.shoot && projectile.cooldown_timer <= 0.0f)
 				{
-					Transform projectile_transform = {.position = {transform.position.x + 35, transform.position.y + 15}, .rotation = 90};
+					Vec2f center = {transform.position.x + (sprite.size.x * 0.5f) , transform.position.y + (sprite.size.y * 0.5f)};
+					Transform projectile_transform = {.position = center, .rotation = 90};
 
 					create_projectile(_world, _resource_manager, _projectile_texture, projectile_transform, {100,0});
 
