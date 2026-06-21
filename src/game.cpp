@@ -67,6 +67,17 @@ enum class CometType : size_t
 };
 constexpr size_t COMET_TYPE_COUNT = 4;
 
+struct Health
+{
+	float amount;
+	float max;
+};
+
+struct Damage
+{
+	float amount;
+};
+
 //projectile factory
 void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Transform transform, Velocity velocity)
 {
@@ -87,7 +98,8 @@ void create_projectile(entt::registry & world, ResourceManager * resource_manage
 	auto & lifetime = world.emplace<Lifetime>(projectile);
 	lifetime.time_remaining = 6.f;
 }
-void create_comet(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Transform transform, Velocity velocity)
+void create_comet(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture,
+				 Transform transform, Velocity velocity, Health health, Damage damage)
 {
 	auto comet = world.create();
 
@@ -98,6 +110,8 @@ void create_comet(entt::registry & world, ResourceManager * resource_manager, Te
 
 	world.emplace<Transform>(comet, transform);
 	world.emplace<Velocity>(comet, velocity);
+	world.emplace<Health>(comet, health);
+	world.emplace<Damage>(comet, damage);
 }
 class CometStrike : public GameApplication
 {
@@ -146,6 +160,13 @@ public:
 		auto & player_projectile = _world.emplace<Projectile>(_player);
 		player_projectile.cooldown_timer = 0;
 		player_projectile.fire_rate = 0.6f;
+
+		auto & player_health = _world.emplace<Health>(_player);
+		player_health.amount = 100;
+		player_health.max = 0.6f;
+
+		auto & player_damage = _world.emplace<Damage>(_player);
+		player_damage.amount = 100;
 
 		//avoid memory allocation on update
 		_projectile_texture = resource_manager->import_texture("assets/projectile.png");
@@ -255,6 +276,8 @@ public:
 
 				if(wave.timer <= 0.0f)
 				{
+					float comet_damage[] = {10.0f, 25.0f, 75.0f, 100.0f};
+
 					//Tiny = 50%, Small = 30%, Med = 15%, Big = 5%
 					std::vector<double> frequency = {50.0, 30.0, 15.0, 5.0};
 					std::discrete_distribution<size_t> comet_type_distribuition(frequency.begin(), frequency.end());
@@ -266,7 +289,8 @@ public:
 					std::uniform_real_distribution<float> comet_position_distribuition(texture_info.height, screen_size.y - texture_info.height);
 
 					Vec2f comet_position = {screen_size.x + texture_info.width, comet_position_distribuition(_random_engine)};
-					create_comet(_world, _resource_manager, texture, {comet_position, 0}, {-100, 0.f});
+					create_comet(_world,_resource_manager, texture, {comet_position, 0}, {-100, 0.f},
+								Health{100.f,100.f}, Damage{.amount = comet_damage[comet_type]});
 					wave.timer = wave.spawn_rate;
 				}
 			}
@@ -299,16 +323,24 @@ public:
 		        if(transform.position.x < 0) transform.position.x += 256.f;
 		    }
         }
-		//Lifetime
+		//clean up system for Health and Lifetime entities
 		{
-			auto view = _world.view<Lifetime>();
-			for(auto entity : view)
+			auto lifetime_view = _world.view<Lifetime>();
+			for(auto entity : lifetime_view)
 			{
-				auto & lifetime = view.get<Lifetime>(entity);
+				auto & lifetime = lifetime_view.get<Lifetime>(entity);
 
 				lifetime.time_remaining -= delta_time;
 
 				if(lifetime.time_remaining <= 0.0f) _world.destroy(entity);
+			}
+
+			auto health_view = _world.view<Health>();
+			for(auto entity : health_view)
+			{
+				auto & health = health_view.get<Health>(entity);
+
+				if(health.amount <= 0.0f) _world.destroy(entity);
 			}
 		}
 	}
