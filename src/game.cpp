@@ -20,8 +20,6 @@ struct BackgroundTag {};
 
 struct Input
 {
-    bool up;
-    bool down;
     bool shoot;
 };
 
@@ -30,6 +28,11 @@ struct Velocity
     Vec2f velocity;
 };
 
+struct Movement
+{
+	Vec2f direction;
+	float speed;
+};
 struct Player
 {
     int index;
@@ -102,12 +105,15 @@ public:
 		player_transform.rotation = -90;
 
 		auto & player_input = _world.emplace<Input>(_player);
-		player_input.up = false;
-		player_input.down = false;
+		player_input.shoot = false;
 
 		auto & player_velocity = _world.emplace<Velocity>(_player);
 		player_velocity.velocity = {0.0f, 0.0f};
-		
+
+		auto & player_movement = _world.emplace<Movement>(_player);
+		player_movement.direction = {0.0f, 0.0f};
+		player_movement.speed = 100;
+
 		auto & player_projectile = _world.emplace<Projectile>(_player);
 		player_projectile.cooldown_timer = 0;
 		player_projectile.fire_rate = 0.6f;
@@ -124,40 +130,43 @@ public:
 			//Test only to create a way to game application quit
 			if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
 
-			auto view = _world.view<Input, Player>();
+			auto view = _world.view<Input, Movement, Player>();
 			for(auto entity : view)
 		    {
 		        auto & input = view.get<Input>(entity);
+		        auto & movement = view.get<Movement>(entity);
 		        auto & player = view.get<Player>(entity);
+
+		        movement.direction = {0.f,0.f};
 		        
+		        bool up = false;
+		        bool down = false;
 				if(player.index == 0)
 				{
-					input.up = key_state[SDL_SCANCODE_W];
-					input.down = key_state[SDL_SCANCODE_S];
+					up = key_state[SDL_SCANCODE_W];
+					down = key_state[SDL_SCANCODE_S];
 					input.shoot = key_state[SDL_SCANCODE_SPACE];
 					
 				}else if(player.index == 1)
 				{
-					input.up = key_state[SDL_SCANCODE_UP];
-					input.down = key_state[SDL_SCANCODE_DOWN];
+					up = key_state[SDL_SCANCODE_UP];
+					down = key_state[SDL_SCANCODE_DOWN];
 					input.shoot = key_state[SDL_SCANCODE_RSHIFT];
 				}
+				if(up)	   movement.direction.y -= 1.f;
+				if(down) movement.direction.y += 1.f;
 			}
 		}
-		//player movement system
+		//control system
 		{
-			auto view = _world.view<Velocity, Input>();
+			auto view = _world.view<Movement, Velocity>();
 			for(auto entity : view)
 		    {
+				auto & movement = view.get<Movement>(entity);
 				auto & velocity = view.get<Velocity>(entity);
-				auto & input = view.get<Input>(entity);
 
-				const float speed = 100.0f;
-
-				velocity.velocity.y = 0.0f;
-
-				if(input.up)   velocity.velocity.y -= speed;
-				if(input.down) velocity.velocity.y += speed;
+				velocity.velocity.x = movement.direction.x * movement.speed;
+				velocity.velocity.y = movement.direction.y * movement.speed;
 		    }
 		}
 		
