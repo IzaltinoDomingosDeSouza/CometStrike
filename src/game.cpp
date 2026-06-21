@@ -29,15 +29,24 @@ struct Velocity
 {
     Vec2f velocity;
 };
+
 struct Player
 {
     int index;
 };
+
 struct Projectile
 {
 	float cooldown_timer;
 	float fire_rate;
 };
+
+struct Lifetime
+{
+	float time_remaining;
+};
+
+//projectile factory
 void create_projectile(entt::registry & world, ResourceManager * resource_manager, Transform transform, Velocity velocity)
 {
 	auto projectile = world.create();
@@ -49,6 +58,9 @@ void create_projectile(entt::registry & world, ResourceManager * resource_manage
 	
 	world.emplace<Transform>(projectile, transform);
 	world.emplace<Velocity>(projectile, velocity);
+
+	auto & lifetime = world.emplace<Lifetime>(projectile);
+	lifetime.time_remaining = 6.f;
 }
 
 class CometStrike : public GameApplication
@@ -203,6 +215,18 @@ public:
 		        if(transform.position.x < 0) transform.position.x += 256.f;
 		    }
         }
+		//Lifetime
+		{
+			auto view = _world.view<Lifetime>();
+			for(auto entity : view)
+			{
+				auto & lifetime = view.get<Lifetime>(entity);
+
+				lifetime.time_remaining -= delta_time;
+
+				if(lifetime.time_remaining <= 0.0f) _world.destroy(entity);
+			}
+		}
 	}
 	void render() override
 	{	
