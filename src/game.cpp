@@ -32,12 +32,27 @@ struct Player
 {
     int index;
 };
+
+void create_projectile(entt::registry & world, ResourceManager * resource_manager, Transform transform, Velocity velocity)
+{
+	auto projectile = world.create();
+	
+	auto & sprite = world.emplace<Sprite>(projectile);
+	sprite.texture = resource_manager->import_texture("assets/projectile.png");
+	auto texture_info = resource_manager->get_texture_info(sprite.texture);
+	sprite.size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
+	
+	world.emplace<Transform>(projectile, transform);
+	world.emplace<Velocity>(projectile, velocity);
+}
+
 class CometStrike : public GameApplication
 {
 public:
 	void init(Renderer * renderer,  ResourceManager * resource_manager) override
 	{
 		_renderer = renderer;
+		_resource_manager = resource_manager;
 		
 		_background = _world.create();
 		auto & background_transform = _world.emplace<Transform>(_background);
@@ -71,6 +86,10 @@ public:
 
 		auto & player_velocity = _world.emplace<Velocity>(_player);
 		player_velocity.velocity = {0.0f, 0.0f};
+		
+		//TODO move to shoot system
+		Transform projectile = {.position = {player_transform.position.x + 20, player_transform.position.y + 15}, .rotation = 90};
+		create_projectile(_world, _resource_manager, projectile, {100,0});
 	}
 	void update(float delta_time) override
 	{
@@ -98,12 +117,11 @@ public:
 				if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
 			}
 		}
-		//movement system
+		//player movement system
 		{
-			auto view = _world.view<Transform, Velocity, Input>();
+			auto view = _world.view<Velocity, Input>();
 			for(auto entity : view)
 		    {
-				auto & transform = view.get<Transform>(entity);
 				auto & velocity = view.get<Velocity>(entity);
 				auto & input = view.get<Input>(entity);
 
@@ -113,9 +131,18 @@ public:
 
 				if(input.up)   velocity.velocity.y -= speed;
 				if(input.down) velocity.velocity.y += speed;
+		    }
+		}
+		
+		//movement system
+		{
+			auto view = _world.view<Transform, Velocity>();
+			for(auto entity : view)
+		    {
+				auto & transform = view.get<Transform>(entity);
+				auto & velocity = view.get<Velocity>(entity);
 				
 				transform.position.x += velocity.velocity.x * delta_time;
-				transform.position.y += velocity.velocity.y * delta_time;
 		    }
 		}
 		//screen bounds system
@@ -182,6 +209,7 @@ public:
 	}
 private:
 	Renderer * _renderer;
+	ResourceManager * _resource_manager;
 	entt::registry _world;
 	entt::entity _background;
 	entt::entity _player;
