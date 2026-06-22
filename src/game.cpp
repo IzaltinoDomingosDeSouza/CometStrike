@@ -6,57 +6,22 @@
 #include <random>
 #include <utility>
 
-struct Vec2f { float x; float y; };
-
-struct Transform
-{
-	Vec2f position;
-	float rotation;
-};
-struct Sprite
-{
-	TextureHandle texture;
-	Vec2f size;
-};
-
-struct BackgroundTag {};
-
-struct Input
-{
-    bool shoot;
-};
-
-struct Velocity
-{
-    Vec2f velocity;
-};
-
-struct Movement
-{
-	Vec2f direction;
-	float speed;
-};
-struct Player
-{
-    int index;
-};
-
-struct Projectile
-{
-	float cooldown_timer;
-	float fire_rate;
-};
-
-struct Lifetime
-{
-	float time_remaining;
-};
-
-struct Wave
-{
-	float timer;
-	float spawn_rate;
-};
+#include "vec2.h"
+#include "components/tags.h"
+#include "components/transform.h"
+#include "components/sprite.h"
+#include "components/input.h"
+#include "components/velocity.h"
+#include "components/movement.h"
+#include "components/player_controller.h"
+#include "components/projectile.h"
+#include "components/lifetime.h"
+#include "components/wave.h"
+#include "components/health.h"
+#include "components/damage.h"
+#include "components/owner.h"
+#include "components/collision/collider.h"
+#include "components/collision/collision_event.h"
 
 enum class CometType : size_t
 {
@@ -67,32 +32,6 @@ enum class CometType : size_t
 };
 constexpr size_t COMET_TYPE_COUNT = 4;
 
-struct Health
-{
-	float amount;
-	float max;
-};
-
-struct Damage
-{
-	float amount;
-};
-
-struct Collider
-{
-	Vec2f bounds_size;
-	bool is_solid;
-};
-
-struct CollisionEvent
-{
-    entt::entity target;
-};
-
-struct Owner
-{
-	entt::entity entity;
-};
 //projectile factory
 void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Owner owner,
 					  Transform transform, Velocity velocity,  Damage damage)
@@ -161,7 +100,7 @@ public:
 		_world.emplace<BackgroundTag>(background);
 
 		auto player = _world.create();
-		auto & player_controller = _world.emplace<Player>(player);
+		auto & player_controller = _world.emplace<PlayerController>(player);
 		player_controller.index = 0;
 
 		auto & player_sprite = _world.emplace<Sprite>(player);
@@ -219,12 +158,12 @@ public:
 			//Test only to create a way to game application quit
 			if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
 
-			auto view = _world.view<Input, Movement, Player>();
+			auto view = _world.view<Input, Movement, PlayerController>();
 			for(auto entity : view)
 		    {
 		        auto & input = view.get<Input>(entity);
 		        auto & movement = view.get<Movement>(entity);
-		        auto & player = view.get<Player>(entity);
+		        auto & player = view.get<PlayerController>(entity);
 
 		        movement.direction = {0.f,0.f};
 		        
@@ -383,7 +322,7 @@ public:
 		//screen bounds system
 		{
 			const float padding = 16.f;	//this make player don't touch the screen
-			auto view = _world.view<Transform, Sprite, Player>();
+			auto view = _world.view<Transform, Sprite, PlayerController>();
 			for(auto entity : view)
 			{
 				auto & transform = view.get<Transform>(entity);
