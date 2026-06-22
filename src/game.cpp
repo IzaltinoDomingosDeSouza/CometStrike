@@ -148,54 +148,53 @@ public:
 		_renderer = renderer;
 		_resource_manager = resource_manager;
 		
-		_background = _world.create();
-		auto & background_transform = _world.emplace<Transform>(_background);
+		auto background = _world.create();
+		auto & background_transform = _world.emplace<Transform>(background);
 		background_transform.position = {0,0};
 		background_transform.rotation = 0;
-		
-		auto & background_sprite = _world.emplace<Sprite>(_background);
+
+		auto & background_sprite = _world.emplace<Sprite>(background);
 		background_sprite.texture = resource_manager->import_texture("assets/background.png");
 		auto background_info = resource_manager->get_texture_info(background_sprite.texture);
 		background_sprite.size = {static_cast<float>(background_info.width), static_cast<float>(background_info.height)};
-		
-		_world.emplace<BackgroundTag>(_background);
-		
-		
-		_player = _world.create();
-		auto & player = _world.emplace<Player>(_player);
-		player.index = 0;
 
-		auto & player_sprite = _world.emplace<Sprite>(_player);
+		_world.emplace<BackgroundTag>(background);
+
+		auto player = _world.create();
+		auto & player_controller = _world.emplace<Player>(player);
+		player_controller.index = 0;
+
+		auto & player_sprite = _world.emplace<Sprite>(player);
 		player_sprite.texture = resource_manager->import_texture("assets/spaceship.png");
 		auto player_texture_info = resource_manager->get_texture_info(player_sprite.texture);
 		player_sprite.size = {static_cast<float>(player_texture_info.width), static_cast<float>(player_texture_info.height)};
 
-		auto & player_transform = _world.emplace<Transform>(_player);
+		auto & player_transform = _world.emplace<Transform>(player);
 		player_transform.position = {16.0f, screen_size.y * 0.5f - player_sprite.size.y * 0.5f};
 		player_transform.rotation = -90;
 
-		auto & player_input = _world.emplace<Input>(_player);
+		auto & player_input = _world.emplace<Input>(player);
 		player_input.shoot = false;
 
-		auto & player_velocity = _world.emplace<Velocity>(_player);
+		auto & player_velocity = _world.emplace<Velocity>(player);
 		player_velocity.velocity = {0.0f, 0.0f};
 
-		auto & player_movement = _world.emplace<Movement>(_player);
+		auto & player_movement = _world.emplace<Movement>(player);
 		player_movement.direction = {0.0f, 0.0f};
 		player_movement.speed = 100;
 
-		auto & player_projectile = _world.emplace<Projectile>(_player);
+		auto & player_projectile = _world.emplace<Projectile>(player);
 		player_projectile.cooldown_timer = 0;
 		player_projectile.fire_rate = 0.6f;
 
-		auto & player_health = _world.emplace<Health>(_player);
+		auto & player_health = _world.emplace<Health>(player);
 		player_health.amount = 100;
 		player_health.max = 0.6f;
 
-		auto & player_damage = _world.emplace<Damage>(_player);
+		auto & player_damage = _world.emplace<Damage>(player);
 		player_damage.amount = 100;
 
-		auto & collider = _world.emplace<Collider>(_player);
+		auto & collider = _world.emplace<Collider>(player);
 		collider.bounds_size = player_sprite.size;
 		collider.is_solid = true;
 
@@ -467,8 +466,6 @@ private:
 	Renderer * _renderer;
 	ResourceManager * _resource_manager;
 	entt::registry _world;
-	entt::entity _background;
-	entt::entity _player;
 
 	std::mt19937 _random_engine;
 
