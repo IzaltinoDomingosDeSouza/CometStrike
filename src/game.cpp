@@ -78,8 +78,24 @@ struct Damage
 	float amount;
 };
 
+struct Collider
+{
+	Vec2f bounds_size;
+	bool is_solid;
+};
+
+struct CollisionEvent
+{
+    entt::entity target;
+};
+
+struct Owner
+{
+	entt::entity entity;
+};
 //projectile factory
-void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Transform transform, Velocity velocity)
+void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Owner owner,
+					  Transform transform, Velocity velocity,  Damage damage)
 {
 	auto projectile = world.create();
 
@@ -97,6 +113,13 @@ void create_projectile(entt::registry & world, ResourceManager * resource_manage
 
 	auto & lifetime = world.emplace<Lifetime>(projectile);
 	lifetime.time_remaining = 6.f;
+
+	auto & collider = world.emplace<Collider>(projectile);
+	collider.bounds_size = sprite.size;
+	collider.is_solid = true;
+
+	world.emplace<Damage>(projectile, damage);
+	world.emplace<Owner>(projectile, owner);
 }
 void create_comet(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture,
 				 Transform transform, Velocity velocity, Health health, Damage damage)
@@ -112,6 +135,10 @@ void create_comet(entt::registry & world, ResourceManager * resource_manager, Te
 	world.emplace<Velocity>(comet, velocity);
 	world.emplace<Health>(comet, health);
 	world.emplace<Damage>(comet, damage);
+
+	auto & collider = world.emplace<Collider>(comet);
+	collider.bounds_size = sprite.size;
+	collider.is_solid = true;
 }
 class CometStrike : public GameApplication
 {
@@ -167,6 +194,10 @@ public:
 
 		auto & player_damage = _world.emplace<Damage>(_player);
 		player_damage.amount = 100;
+
+		auto & collider = _world.emplace<Collider>(_player);
+		collider.bounds_size = player_sprite.size;
+		collider.is_solid = true;
 
 		//avoid memory allocation on update
 		_projectile_texture = resource_manager->import_texture("assets/projectile.png");
@@ -228,6 +259,59 @@ public:
 				velocity.velocity.y = movement.direction.y * movement.speed;
 		    }
 		}
+		//collision system
+		{
+			auto view = _world.view<Collider, Transform>();
+
+			for(auto iterator = view.begin(); iterator != view.end(); ++iterator)
+			{
+				auto entity1 = *iterator;
+				auto & transform1 = view.get<Transform>(entity1);
+				auto & collider1 = view.get<Collider>(entity1);
+
+				for(auto next_iterator = std::next(iterator); next_iterator != view.end(); ++next_iterator)
+				{
+					auto entity2 = *next_iterator;
+					auto & transform2 = view.get<Transform>(entity2);
+					auto & collider2 = view.get<Collider>(entity2);
+
+					auto is_colliding = (transform1.position.x  < transform2.position.x   + collider2.bounds_size.x  &&
+										 transform1.position.x  + collider1.bounds_size.x > transform2.position.x    &&
+										 transform1.position.y  < transform2.position.y   + collider2.bounds_size.y  &&
+										 transform1.position.y  + collider1.bounds_size.y > transform2.position.y);
+
+					if(collider1.is_solid == collider2.is_solid && is_colliding)
+					{
+						auto & event1 = _world.emplace_or_replace<CollisionEvent>(entity1);
+						event1.target = entity2;
+
+						auto & event2 = _world.emplace_or_replace<CollisionEvent>(entity2);
+						event2.target = entity1;
+					}
+				}
+			}
+		}
+		//combat system
+		{
+			auto view = _world.view<CollisionEvent>();
+			for(auto entity : view)
+			{
+				auto & event = view.get<CollisionEvent>(entity);
+
+				auto * owner = _world.try_get<Owner>(event.target);
+				
+				if(owner && owner->entity == entity) continue;
+
+				auto * health = _world.try_get<Health>(entity);
+				auto * damage = _world.try_get<Damage>(event.target);
+
+				if(health && damage)
+				{
+					health->amount -= damage->amount;
+				}
+			}
+			_world.clear<CollisionEvent>();
+		}
 		//movement system
 		{
 			auto view = _world.view<Transform, Velocity>();
@@ -257,7 +341,8 @@ public:
 					Vec2f center = {transform.position.x + (sprite.size.x * 0.5f) , transform.position.y + (sprite.size.y * 0.5f)};
 					Transform projectile_transform = {.position = center, .rotation = 90};
 
-					create_projectile(_world, _resource_manager, _projectile_texture, projectile_transform, {100,0});
+					create_projectile(_world, _resource_manager, _projectile_texture, Owner{.entity = entity} ,
+									  projectile_transform, Velocity {100,0}, Damage{.amount = 10});
 
 					input.shoot = false;
 
@@ -289,7 +374,8 @@ public:
 					std::uniform_real_distribution<float> comet_position_distribuition(texture_info.height, screen_size.y - texture_info.height);
 
 					Vec2f comet_position = {screen_size.x + texture_info.width, comet_position_distribuition(_random_engine)};
-					create_comet(_world,_resource_manager, texture, {comet_position, 0}, {-100, 0.f},
+					create_comet(_world,_resource_manager, texture,
+								Transform{comet_position, 0}, Velocity{-100, 0.f},
 								Health{100.f,100.f}, Damage{.amount = comet_damage[comet_type]});
 					wave.timer = wave.spawn_rate;
 				}
