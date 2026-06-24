@@ -21,18 +21,14 @@ void collision_system_update(entt::registry * world)
 			auto & transform2 = view.get<Transform>(entity2);
 			auto & collider2 = view.get<Collider>(entity2);
 
-			auto * owner1 = world->try_get<Owner>(entity1);
-			auto * owner2 = world->try_get<Owner>(entity2);
-			if(owner1 && owner2 && owner1->entity == owner2->entity) continue;
-			if(owner1 && owner1->entity == entity2) continue;
-            if(owner2 && owner2->entity == entity1) continue;
+			bool can_collide = (collider1.bitmask & collider2.layer) && (collider2.bitmask & collider1.layer);
 
 			auto is_colliding = (transform1.position.x  < transform2.position.x   + collider2.bounds_size.x  &&
 								 transform1.position.x  + collider1.bounds_size.x > transform2.position.x    &&
 								 transform1.position.y  < transform2.position.y   + collider2.bounds_size.y  &&
 								 transform1.position.y  + collider1.bounds_size.y > transform2.position.y);
 
-			if(collider1.is_solid == collider2.is_solid && is_colliding)
+			if(collider1.is_solid == collider2.is_solid && is_colliding && can_collide)
 			{
 				auto & event1 = world->emplace_or_replace<CollisionEvent>(entity1);
 				event1.target = entity2;

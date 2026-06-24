@@ -5,6 +5,7 @@
 #include "../components/projectile.h"
 
 #include "../entity_template/projectile.h"
+#include "../collision_layer.h"
 
 void shoot_system_update(entt::registry * world, float delta_time, TextureHandle projectile_texture, ResourceManager * resource_manager)
 {
@@ -37,9 +38,13 @@ void shoot_system_update(entt::registry * world, float delta_time, TextureHandle
 				.velocity {.velocity = {100.f, 0.0f}},
 				.owner {.entity = entity},
 				.damage {.amount = 10},
-				.collider {.bounds_size = projectile_size, .is_solid = true}
+				.collider {.layer = CollisionLayer::ProjectileLayer,
+				           .bitmask = CollisionLayer::CometLayer,
+						   .bounds_size = projectile_size,
+						   .is_solid = true},
 			};
 
+		
 			projectile_template.create(*world);
 
 			input.shoot = false;

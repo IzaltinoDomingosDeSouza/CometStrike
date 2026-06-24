@@ -6,6 +6,8 @@
 #include <utility>
 
 #include "vec2.h"
+#include "collision_layer.h"
+
 #include "components/tags.h"
 #include "components/transform.h"
 #include "components/sprite.h"
@@ -100,6 +102,8 @@ public:
 		player_damage.amount = 100;
 
 		auto & collider = _world.emplace<Collider>(player);
+		collider.layer = CollisionLayer::PlayerLayer;
+		collider.bitmask = CollisionLayer::CometLayer | CollisionLayer::ProjectileLayer;
 		collider.bounds_size = player_sprite_size;
 		collider.is_solid = true;
 

@@ -2,9 +2,11 @@
 #include "../components/input.h"
 #include "../components/transform.h"
 #include "../components/player_controller.h"
-
 #include "../components/shield.h"
+
 #include "../entity_template/shield.h"
+
+#include "../collision_layer.h"
 
 void shield_system_update(entt::registry * world, ResourceManager * resource_manager, TextureHandle texture)
 {
@@ -29,7 +31,7 @@ void shield_system_update(entt::registry * world, ResourceManager * resource_man
         		}
         }
     }
-    
+
     for(auto player_entity : player_view)
     {
     		auto & transform = player_view.get<Transform>(player_entity);
@@ -54,7 +56,10 @@ void shield_system_update(entt::registry * world, ResourceManager * resource_man
 				.follow = {.target = player_entity, .offset{0.0f, -13.f}, .active = true},
 				.health = {.amount = 100, .max = 100},
 				.damage = {.amount = 100},
-				.collider = {.bounds_size = texture_size, .is_solid = false},
+				.collider = {.layer = CollisionLayer::ShieldLayer,
+                             .bitmask = CollisionLayer::CometLayer,
+                             .bounds_size = texture_size,
+                             .is_solid = false},
 			};
 			sheild_template.create(*world);
     		}

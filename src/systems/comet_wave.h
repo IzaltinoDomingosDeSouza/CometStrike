@@ -3,6 +3,8 @@
 
 #include "../entity_template/comet.h"
 
+#include "../collision_layer.h"
+
 #include <random>
 std::mt19937 random_engine;
 
@@ -39,8 +41,10 @@ void comet_wave_system_update(entt::registry * world, float delta_time, Resource
 				.velocity = {.velocity = {-100, 0.0f}},
 				.health = {.amount = 100.f, .max = 100.f},
 				.damage = {.amount = comet_damage[comet_type]},
-				.collider = {.bounds_size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)},
-							.is_solid = true}
+				.collider = {.layer = CollisionLayer::CometLayer,
+				             .bitmask = CollisionLayer::PlayerLayer | CollisionLayer::ProjectileLayer | CollisionLayer::ShieldLayer,
+				             .bounds_size = {static_cast<float>(texture_info.width),static_cast<float>(texture_info.height)},
+				             .is_solid = true}
 			};
 			comet_template.create(*world);
 

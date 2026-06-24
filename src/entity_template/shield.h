@@ -1,5 +1,7 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 #include "../components/sprite.h"
 #include "../components/transform.h"
 #include "../components/shield.h"
