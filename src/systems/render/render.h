@@ -4,7 +4,7 @@
 #include "../../components/transform.h"
 #include "../../components/tags.h"
 
-void render_system_process(entt::registry * world, Renderer * renderer, Vec2f screen_size)
+void render_system_process(entt::registry * world, Renderer * renderer, ResourceManager * resource_manager, Vec2f screen_size)
 {
 	auto background_view = world->view<Sprite, Transform, BackgroundTag>();
 	for(auto entity : background_view)
@@ -13,7 +13,9 @@ void render_system_process(entt::registry * world, Renderer * renderer, Vec2f sc
 		auto & transform = world->get<Transform>(entity);
 		
 		float offset = transform.position.x;
-		float tile_size = sprite.size.x;
+		auto texture_info = resource_manager->get_texture_info(sprite.texture);
+		Vec2f sprite_size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
+		float tile_size = sprite_size.x;
 
 		for (int x = -tile_size; x < screen_size.x + tile_size; x += tile_size)
 		{

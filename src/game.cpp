@@ -43,53 +43,6 @@ enum class CometType : size_t
 };
 constexpr size_t COMET_TYPE_COUNT = 4;
 
-//projectile factory
-void create_projectile(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture, Owner owner,
-					  Transform transform, Velocity velocity,  Damage damage)
-{
-	auto projectile = world.create();
-
-	auto & sprite = world.emplace<Sprite>(projectile);
-	sprite.texture = texture;
-	auto texture_info = resource_manager->get_texture_info(sprite.texture);
-	sprite.size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
-
-	//center
-	transform.position.x -= sprite.size.x * 0.5;
-	transform.position.y -= sprite.size.y * 0.5;
-	world.emplace<Transform>(projectile, transform);
-
-	world.emplace<Velocity>(projectile, velocity);
-
-	auto & lifetime = world.emplace<Lifetime>(projectile);
-	lifetime.time_remaining = 6.f;
-
-	auto & collider = world.emplace<Collider>(projectile);
-	collider.bounds_size = sprite.size;
-	collider.is_solid = true;
-
-	world.emplace<Damage>(projectile, damage);
-	world.emplace<Owner>(projectile, owner);
-}
-void create_comet(entt::registry & world, ResourceManager * resource_manager, TextureHandle texture,
-				 Transform transform, Velocity velocity, Health health, Damage damage)
-{
-	auto comet = world.create();
-
-	auto & sprite = world.emplace<Sprite>(comet);
-	sprite.texture = texture;
-	auto texture_info = resource_manager->get_texture_info(sprite.texture);
-	sprite.size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)};
-
-	world.emplace<Transform>(comet, transform);
-	world.emplace<Velocity>(comet, velocity);
-	world.emplace<Health>(comet, health);
-	world.emplace<Damage>(comet, damage);
-
-	auto & collider = world.emplace<Collider>(comet);
-	collider.bounds_size = sprite.size;
-	collider.is_solid = true;
-}
 class CometStrike : public GameApplication
 {
 public:
@@ -105,8 +58,6 @@ public:
 
 		auto & background_sprite = _world.emplace<Sprite>(background);
 		background_sprite.texture = resource_manager->import_texture("assets/background.png");
-		auto background_info = resource_manager->get_texture_info(background_sprite.texture);
-		background_sprite.size = {static_cast<float>(background_info.width), static_cast<float>(background_info.height)};
 
 		_world.emplace<BackgroundTag>(background);
 
@@ -116,11 +67,12 @@ public:
 
 		auto & player_sprite = _world.emplace<Sprite>(player);
 		player_sprite.texture = resource_manager->import_texture("assets/spaceship.png");
-		auto player_texture_info = resource_manager->get_texture_info(player_sprite.texture);
-		player_sprite.size = {static_cast<float>(player_texture_info.width), static_cast<float>(player_texture_info.height)};
 
+		auto player_texture_info = resource_manager->get_texture_info(player_sprite.texture);
+		Vec2f player_sprite_size = {static_cast<float>(player_texture_info.width), static_cast<float>(player_texture_info.height)};
+		
 		auto & player_transform = _world.emplace<Transform>(player);
-		player_transform.position = {16.0f, screen_size.y * 0.5f - player_sprite.size.y * 0.5f};
+		player_transform.position = {16.0f, screen_size.y * 0.5f - player_sprite_size.y * 0.5f};
 		player_transform.rotation = -90;
 
 		auto & player_input = _world.emplace<Input>(player);
@@ -139,13 +91,13 @@ public:
 
 		auto & player_health = _world.emplace<Health>(player);
 		player_health.amount = 100;
-		player_health.max = 0.6f;
+		player_health.max = 100.f;
 
 		auto & player_damage = _world.emplace<Damage>(player);
 		player_damage.amount = 100;
 
 		auto & collider = _world.emplace<Collider>(player);
-		collider.bounds_size = player_sprite.size;
+		collider.bounds_size = player_sprite_size;
 		collider.is_solid = true;
 
 		//avoid memory allocation on update
@@ -167,15 +119,15 @@ public:
 		collision_system_update(&_world);
 		combat_system_update(&_world);
 		movement_system_update(&_world, delta_time);
-		shoot_system_update(&_world, delta_time, create_projectile,_projectile_texture,_resource_manager);
-		comet_wave_system_update(&_world, delta_time, _resource_manager, create_comet, _comet_texture, screen_size);
-		screen_bounds_system_update(&_world, screen_size);
+		shoot_system_update(&_world, delta_time,_projectile_texture,_resource_manager);
+		comet_wave_system_update(&_world, delta_time, _resource_manager, _comet_texture, screen_size);
+		screen_bounds_system_update(&_world, _resource_manager, screen_size);
 		background_scrolling_system_update(&_world, delta_time);
 		cleanup_system_update(&_world, delta_time);
 	}
 	void render() override
 	{	
-		render_system_process(&_world, _renderer, screen_size);
+		render_system_process(&_world, _renderer, _resource_manager, screen_size);
 	}
 	void shutdown() override
 	{

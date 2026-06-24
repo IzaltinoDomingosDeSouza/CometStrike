@@ -5,5 +5,4 @@
 struct Sprite
 {
 	TextureHandle texture;
-	Vec2f size;
 };

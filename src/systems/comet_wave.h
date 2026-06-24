@@ -1,12 +1,12 @@
 #pragma once
 #include "../components/wave.h"
 
+#include "../entity_template/comet.h"
+
 #include <random>
 std::mt19937 random_engine;
 
 void comet_wave_system_update(entt::registry * world, float delta_time, ResourceManager * resource_manager,
-							 std::function<void(entt::registry &, ResourceManager *,
-							 TextureHandle, Transform, Velocity, Health, Damage)> create_comet,
 							 TextureHandle * comet_textures, Vec2f screen_size)
 {
 	auto view = world->view<Wave>();
@@ -31,9 +31,19 @@ void comet_wave_system_update(entt::registry * world, float delta_time, Resource
 			std::uniform_real_distribution<float> comet_position_distribuition(texture_info.height, screen_size.y - texture_info.height);
 
 			Vec2f comet_position = {screen_size.x + texture_info.width, comet_position_distribuition(random_engine)};
-			create_comet(*world,resource_manager, texture,
-						Transform{comet_position, 0}, Velocity{-100, 0.f},
-						Health{100.f,100.f}, Damage{.amount = comet_damage[comet_type]});
+
+			CometTemplate comet_template
+			{
+				.sprite = {.texture = texture},
+				.transform = {.position = comet_position, .rotation = 0.0f},
+				.velocity = {.velocity = {-100, 0.0f}},
+				.health = {.amount = 100.f, .max = 100.f},
+				.damage = {.amount = comet_damage[comet_type]},
+				.collider = {.bounds_size = {static_cast<float>(texture_info.width), static_cast<float>(texture_info.height)},
+							.is_solid = true}
+			};
+			comet_template.create(*world);
+
 			wave.timer = wave.spawn_rate;
 		}
 	}

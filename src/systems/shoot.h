@@ -4,13 +4,9 @@
 #include "../components/sprite.h"
 #include "../components/projectile.h"
 
-#include <functional>
+#include "../entity_template/projectile.h"
 
-void shoot_system_update(entt::registry * world, float delta_time, std::function<void(entt::registry &, ResourceManager *,
-																	TextureHandle, Owner,Transform, Velocity, Damage)>
-																	create_projectile,
-																	TextureHandle projectile_texture,
-																	ResourceManager * resource_manager)
+void shoot_system_update(entt::registry * world, float delta_time, TextureHandle projectile_texture, ResourceManager * resource_manager)
 {
 	auto view = world->view<Input, Transform, Sprite, Projectile>();
 	for(auto entity : view)
@@ -24,11 +20,27 @@ void shoot_system_update(entt::registry * world, float delta_time, std::function
 
 		if(input.shoot && projectile.cooldown_timer <= 0.0f)
 		{
-			Vec2f center = {transform.position.x + (sprite.size.x * 0.5f) , transform.position.y + (sprite.size.y * 0.5f)};
-			Transform projectile_transform = {.position = center, .rotation = 90};
+			auto projectile_texture_info = resource_manager->get_texture_info(projectile_texture);
+			auto sprite_texture_info = resource_manager->get_texture_info(sprite.texture);
 
-			create_projectile(*world, resource_manager, projectile_texture, Owner{.entity = entity} ,
-							  projectile_transform, Velocity {100,0}, Damage{.amount = 10});
+			Vec2f projectile_size = {static_cast<float>(projectile_texture_info.width), static_cast<float>(projectile_texture_info.height)};
+			Vec2f sprite_size = {static_cast<float>(sprite_texture_info.width), static_cast<float>(sprite_texture_info.height)};
+
+			Vec2f position ={transform.position.x + (sprite_size.x - projectile_size.x) * 0.5f,
+							 transform.position.y + (sprite_size.y - projectile_size.y) * 0.5f};
+
+			ProjectileTemplate projectile_template = {
+				.sprite {.texture = projectile_texture},
+				.transform {.position = position,
+							.rotation = 90.0f},
+				.lifetime {.time_remaining = 6.f},
+				.velocity {.velocity = {100.f, 0.0f}},
+				.owner {.entity = entity},
+				.damage {.amount = 10},
+				.collider {.bounds_size = projectile_size, .is_solid = true}
+			};
+
+			projectile_template.create(*world);
 
 			input.shoot = false;
 
