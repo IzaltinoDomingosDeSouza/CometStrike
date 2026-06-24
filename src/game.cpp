@@ -21,9 +21,11 @@
 #include "components/owner.h"
 #include "components/collision/collider.h"
 #include "components/collision/collision_event.h"
+#include "systems/shield.h"
 
 #include "systems/input.h"
 #include "systems/control.h"
+#include "systems/shield.h"
 #include "systems/collision.h"
 #include "systems/combat.h"
 #include "systems/movement.h"
@@ -33,6 +35,7 @@
 #include "systems/background_scrolling.h"
 #include "systems/cleanup.h"
 #include "systems/render/render.h"
+#include "systems/follow_target.h"
 
 enum class CometType : size_t
 {
@@ -106,6 +109,7 @@ public:
 		_comet_texture[std::to_underlying(CometType::Small)] = resource_manager->import_texture("assets/comets/small1.png");
 		_comet_texture[std::to_underlying(CometType::Med)] = resource_manager->import_texture("assets/comets/med1.png");
 		_comet_texture[std::to_underlying(CometType::Big)] = resource_manager->import_texture("assets/comets/big1.png");
+		_shield_texture = resource_manager->import_texture("assets/shield.png");
 
 		auto comet_wave = _world.create();
 		auto & wave = _world.emplace<Wave>(comet_wave);
@@ -116,12 +120,14 @@ public:
 	{
 		input_system_update(&_world);
 		control_system_update(&_world);
+		shield_system_update(&_world, _resource_manager, _shield_texture);
 		collision_system_update(&_world);
 		combat_system_update(&_world);
 		movement_system_update(&_world, delta_time);
 		shoot_system_update(&_world, delta_time,_projectile_texture,_resource_manager);
 		comet_wave_system_update(&_world, delta_time, _resource_manager, _comet_texture, screen_size);
 		screen_bounds_system_update(&_world, _resource_manager, screen_size);
+		follow_system_update(&_world);
 		background_scrolling_system_update(&_world, delta_time);
 		cleanup_system_update(&_world, delta_time);
 	}
@@ -142,6 +148,7 @@ private:
 
 	TextureHandle _projectile_texture;
 	TextureHandle _comet_texture[COMET_TYPE_COUNT];
+	TextureHandle _shield_texture;
 };
 int main()
 {

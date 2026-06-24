@@ -26,14 +26,16 @@ void input_system_update(entt::registry * world)
 			up = key_state[SDL_SCANCODE_W];
 			down = key_state[SDL_SCANCODE_S];
 			input.shoot = key_state[SDL_SCANCODE_SPACE];
+			input.enable_shield = key_state[SDL_SCANCODE_LSHIFT];
 			
 		}else if(player.index == 1)
 		{
 			up = key_state[SDL_SCANCODE_UP];
 			down = key_state[SDL_SCANCODE_DOWN];
-			input.shoot = key_state[SDL_SCANCODE_RSHIFT];
+			input.shoot = key_state[SDL_SCANCODE_RCTRL];
+			input.enable_shield = key_state[SDL_SCANCODE_RSHIFT];
 		}
-		if(up)	   movement.direction.y -= 1.f;
+		if(up)	 movement.direction.y -= 1.f;
 		if(down) movement.direction.y += 1.f;
 	}
 }

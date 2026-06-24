@@ -5,4 +5,5 @@
 struct Input
 {
     bool shoot;
+    bool enable_shield;
 };
