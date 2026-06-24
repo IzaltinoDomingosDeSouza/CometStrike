@@ -10,10 +10,6 @@ void combat_system_update(entt::registry * world)
 	{
 		auto & event = view.get<CollisionEvent>(entity);
 
-		auto * owner = world->try_get<Owner>(event.target);
-		
-		if(owner && owner->entity == entity) continue;
-
 		auto * health = world->try_get<Health>(entity);
 		auto * damage = world->try_get<Damage>(event.target);
 
