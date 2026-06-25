@@ -5,3 +5,5 @@
 struct DisabledTag {};
 struct BackgroundTag {};
 struct ShieldTag {};
+struct ShieldPowerUpTag {};
+struct CleanUpTag {};
