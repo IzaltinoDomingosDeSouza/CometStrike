@@ -22,4 +22,7 @@ void cleanup_system_update(entt::registry * world, float delta_time)
 
 		if(health.amount <= 0.0f) world->destroy(entity);
 	}
+
+	auto cleanup_view = world->view<CleanUpTag>();
+	world->destroy(cleanup_view.begin(), cleanup_view.end());
 }
