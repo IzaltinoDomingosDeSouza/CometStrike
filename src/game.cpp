@@ -38,6 +38,8 @@
 #include "systems/cleanup.h"
 #include "systems/render/render.h"
 #include "systems/follow_target.h"
+#include "systems/powerup.h"
+#include "systems/shield_powerup_collision.h"
 
 enum class CometType : size_t
 {
@@ -103,7 +105,7 @@ public:
 
 		auto & collider = _world.emplace<Collider>(player);
 		collider.layer = CollisionLayer::PlayerLayer;
-		collider.bitmask = CollisionLayer::CometLayer | CollisionLayer::ProjectileLayer;
+		collider.bitmask = CollisionLayer::CometLayer | CollisionLayer::ProjectileLayer | CollisionLayer::PoweUpLayer;
 		collider.bounds_size = player_sprite_size;
 		collider.is_solid = true;
 
@@ -114,6 +116,7 @@ public:
 		_comet_texture[std::to_underlying(CometType::Med)] = resource_manager->import_texture("assets/comets/med1.png");
 		_comet_texture[std::to_underlying(CometType::Big)] = resource_manager->import_texture("assets/comets/big1.png");
 		_shield_texture = resource_manager->import_texture("assets/shield.png");
+		_powerup_shield_texture = resource_manager->import_texture("assets/powerup_shield.png");
 
 		auto comet_wave = _world.create();
 		auto & wave = _world.emplace<Wave>(comet_wave);
@@ -126,10 +129,12 @@ public:
 		control_system_update(&_world);
 		shield_system_update(&_world, _resource_manager, _shield_texture);
 		collision_system_update(&_world);
+		shield_powerup_collision_system_update(&_world);
 		combat_system_update(&_world);
 		movement_system_update(&_world, delta_time);
 		shoot_system_update(&_world, delta_time,_projectile_texture,_resource_manager);
 		comet_wave_system_update(&_world, delta_time, _resource_manager, _comet_texture, screen_size);
+		powerup_system_update(&_world, delta_time, _resource_manager, _powerup_shield_texture);
 		screen_bounds_system_update(&_world, _resource_manager, screen_size);
 		follow_system_update(&_world);
 		background_scrolling_system_update(&_world, delta_time);
@@ -153,6 +158,7 @@ private:
 	TextureHandle _projectile_texture;
 	TextureHandle _comet_texture[COMET_TYPE_COUNT];
 	TextureHandle _shield_texture;
+	TextureHandle _powerup_shield_texture;
 };
 int main()
 {

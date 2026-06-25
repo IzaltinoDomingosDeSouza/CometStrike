@@ -30,5 +30,4 @@ void combat_system_update(entt::registry * world)
 			health->amount -= damage->amount;
 		}
 	}
-	world->clear<CollisionEvent>();
 }

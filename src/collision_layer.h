@@ -6,5 +6,6 @@ enum CollisionLayer : uint32_t
     PlayerLayer     = 1 << 0,
     CometLayer      = 1 << 1,
     ProjectileLayer = 1 << 2,
-    ShieldLayer     = 1 << 3,
+    PoweUpLayer     = 1 << 3,
+    ShieldLayer     = 1 << 4,
 };

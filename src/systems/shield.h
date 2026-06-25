@@ -24,7 +24,7 @@ void shield_system_update(entt::registry * world, ResourceManager * resource_man
 		.collider = {.layer = CollisionLayer::ShieldLayer,
                      .bitmask = CollisionLayer::CometLayer,
                      .bounds_size = texture_size,
-                     .is_solid = false},
+                     .is_solid = true},
 	};
 	//
 	
@@ -62,6 +62,6 @@ void shield_system_update(entt::registry * world, ResourceManager * resource_man
 		auto & shield = world->emplace<Shield>(entity);
 		shield.shield_entity = shield_entity;
 		shield.max_capacity = 3;
-		shield.current_capacity = 3;
+		shield.current_capacity = 0;
 	}
 }
