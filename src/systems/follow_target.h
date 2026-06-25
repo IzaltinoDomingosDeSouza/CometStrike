@@ -4,7 +4,7 @@
 
 void follow_system_update(entt::registry * world)
 {
-	auto view = world->view<FollowTarget, Transform>();
+	auto view = world->view<FollowTarget, Transform>(entt::exclude<DisabledTag>);
     for(auto entity : view)
     {
 		auto & follow = view.get<FollowTarget>(entity);

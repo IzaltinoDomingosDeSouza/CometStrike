@@ -26,7 +26,7 @@ void render_system_process(entt::registry * world, Renderer * renderer, Resource
 		}
 	}
 
-	auto view = world->view<Sprite, Transform>(entt::exclude<BackgroundTag>);
+	auto view = world->view<Sprite, Transform>(entt::exclude<BackgroundTag, DisabledTag>);
 	for(auto entity : view)
 	{
 		auto & sprite = world->get<Sprite>(entity);

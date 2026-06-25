@@ -7,7 +7,7 @@
 
 void collision_system_update(entt::registry * world)
 {
-	auto view = world->view<Collider, Transform>();
+	auto view = world->view<Collider, Transform>(entt::exclude<DisabledTag>);
 
 	for(auto iterator = view.begin(); iterator != view.end(); ++iterator)
 	{

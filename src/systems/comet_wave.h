@@ -11,7 +11,7 @@ std::mt19937 random_engine;
 void comet_wave_system_update(entt::registry * world, float delta_time, ResourceManager * resource_manager,
 							 TextureHandle * comet_textures, Vec2f screen_size)
 {
-	auto view = world->view<Wave>();
+	auto view = world->view<Wave>(entt::exclude<DisabledTag>);
 	for(auto entity : view)
 	{
 		auto & wave = view.get<Wave>(entity);

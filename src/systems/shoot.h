@@ -9,7 +9,7 @@
 
 void shoot_system_update(entt::registry * world, float delta_time, TextureHandle projectile_texture, ResourceManager * resource_manager)
 {
-	auto view = world->view<Input, Transform, Sprite, Projectile>();
+	auto view = world->view<Input, Transform, Sprite, Projectile>(entt::exclude<DisabledTag>);
 	for(auto entity : view)
 	{
 		auto & transform = view.get<Transform>(entity);

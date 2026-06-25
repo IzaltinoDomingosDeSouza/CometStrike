@@ -5,7 +5,7 @@
 
 void cleanup_system_update(entt::registry * world, float delta_time)
 {
-	auto lifetime_view = world->view<Lifetime>();
+	auto lifetime_view = world->view<Lifetime>(entt::exclude<DisabledTag>);
 	for(auto entity : lifetime_view)
 	{
 		auto & lifetime = lifetime_view.get<Lifetime>(entity);

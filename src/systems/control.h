@@ -4,7 +4,7 @@
 
 void control_system_update(entt::registry * world)
 {
-	auto view = world->view<Movement, Velocity>();
+	auto view = world->view<Movement, Velocity>(entt::exclude<DisabledTag>);
 	for(auto entity : view)
     {
 		auto & movement = view.get<Movement>(entity);

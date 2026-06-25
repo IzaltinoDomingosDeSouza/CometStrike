@@ -4,7 +4,7 @@
 
 void movement_system_update(entt::registry * world, float delta_time)
 {
-	auto view = world->view<Transform, Velocity>();
+	auto view = world->view<Transform, Velocity>(entt::exclude<DisabledTag>);
 	for(auto entity : view)
     {
 		auto & transform = view.get<Transform>(entity);

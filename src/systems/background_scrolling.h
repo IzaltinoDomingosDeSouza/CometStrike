@@ -5,7 +5,7 @@
 
 void background_scrolling_system_update(entt::registry * world, float delta_time)
 {
-	auto view = world->view<Transform, BackgroundTag>();
+	auto view = world->view<Transform, BackgroundTag>(entt::exclude<DisabledTag>);
 	for(auto entity : view)
     {
         auto & transform = view.get<Transform>(entity);

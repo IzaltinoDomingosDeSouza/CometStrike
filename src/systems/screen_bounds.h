@@ -5,7 +5,7 @@
 void screen_bounds_system_update(entt::registry * world, ResourceManager * resource_manager, Vec2f screen_size)
 {
 	const float padding = 16.f;	//this make player don't touch the screen
-	auto view = world->view<Transform, Sprite, PlayerController>();
+	auto view = world->view<Transform, Sprite, PlayerController>(entt::exclude<DisabledTag>);
 	for(auto entity : view)
 	{
 		auto & transform = view.get<Transform>(entity);

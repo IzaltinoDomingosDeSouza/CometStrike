@@ -10,7 +10,7 @@ void input_system_update(entt::registry * world)
 	//Test only to create a way to game application quit
 	//if(key_state[SDL_SCANCODE_ESCAPE]) request_quit();
 
-	auto view = world->view<Input, Movement, PlayerController>();
+	auto view = world->view<Input, Movement, PlayerController>(entt::exclude<DisabledTag>);
 	for(auto entity : view)
     {
         auto & input = view.get<Input>(entity);
