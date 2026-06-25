@@ -4,6 +4,7 @@
 #include <entt/entt.hpp>
 
 #include <utility>
+#include <print>
 
 #include "vec2.h"
 #include "collision_layer.h"
@@ -141,7 +142,21 @@ public:
 		cleanup_system_update(&_world, delta_time);
 	}
 	void render() override
-	{	
+	{
+		auto view = _world.view<PlayerController, Health, Shield>(entt::exclude<DisabledTag>);
+		for(auto entity : view)
+		{
+			auto & player = view.get<PlayerController>(entity);
+			auto & health = view.get<Health>(entity);
+			auto & shield = view.get<Shield>(entity);
+			auto & shield_health = _world.get<Health>(shield.shield_entity);
+			
+			std::println("Hud player index: {} health: {} shield : {}/{} shield health {}", player.index,
+																						   health.amount,
+																						   shield.current_capacity,
+																						   shield.max_capacity,
+																						   shield_health.amount);
+		}
 		render_system_process(&_world, _renderer, _resource_manager, screen_size);
 	}
 	void shutdown() override

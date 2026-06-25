@@ -9,9 +9,9 @@ void shield_powerup_collision_system_update(entt::registry * world)
 	{
 		auto & event = view.get<CollisionEvent>(entity);
 
-		if(!world->all_of<ShieldPowerUpTag>(event.target)) continue;
+		if(!world->all_of<ShieldPowerUpTag>(event.source)) continue;
 
-		auto * shield = world->try_get<Shield>(entity);
+		auto * shield = world->try_get<Shield>(event.target);
 		if(shield)
 		{
 			shield->current_capacity += 1;
@@ -20,7 +20,7 @@ void shield_powerup_collision_system_update(entt::registry * world)
 			auto * shield_health = world->try_get<Health>(shield->shield_entity);
 			if(shield_health) shield_health->amount = shield_health->max;
 			
-			 world->emplace_or_replace<CleanUpTag>(event.target);
+			 world->emplace_or_replace<CleanUpTag>(event.source);
 		}
 	}
 }

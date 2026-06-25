@@ -4,5 +4,6 @@
 
 struct CollisionEvent
 {
+	entt::entity source;
     entt::entity target;
 };

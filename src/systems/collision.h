@@ -31,13 +31,21 @@ void collision_system_update(entt::registry * world)
 
 			if(collider1.is_solid == collider2.is_solid && is_colliding && can_collide)
 			{
-				auto & event1 = world->emplace_or_replace<CollisionEvent>(entity1);
-				event1.target = entity2;
+				auto event_entity = world->create();
+				auto & event = world->emplace<CollisionEvent>(event_entity);
 
-				auto & event2 = world->emplace_or_replace<CollisionEvent>(entity2);
-				event2.target = entity1;
+				int priority1 = CollisionPriority::get_layer_priority(collider1.layer);
+				int priority2 = CollisionPriority::get_layer_priority(collider2.layer);
 
-				break;
+				if(priority1 >= priority2)
+				{
+					event.source = entity1;
+					event.target = entity2;
+				}else
+				{
+					event.source = entity2;
+					event.target = entity1;
+				}
 			}
 		}
 	}
